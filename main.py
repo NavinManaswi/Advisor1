@@ -1,3 +1,5 @@
+
+# Import statements (excluding voice-related parts)
 from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
 from langchain.prompts import BaseChatPromptTemplate
 from langchain import SerpAPIWrapper, LLMChain
@@ -14,27 +16,25 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.chat_models.openai import ChatOpenAI
 from langchain.utilities import GoogleSearchAPIWrapper
 from langchain.chains import RetrievalQAWithSourcesChain
-
 # Importing necessary libraries
 import langchain
-from elevenlabs import set_api_key
 
+# Load environment variables from the .env file
 def setup():
     OPENAI_API_KEY = st.text_input("Enter your OPENAI GPT4 API KEY:", type="password")
     GOOGLE_CSE_ID = st.text_input("Enter your GOOGLE CSE ID:", type="password")
     GOOGLE_API_KEY = st.text_input("Enter your GOOGLE API KEY:", type="password")
-
     # Set the environment variables
     os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
     os.environ["GOOGLE_CSE_ID"] = GOOGLE_CSE_ID
     os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
     if st.button("Submit"):
-        st.success("Successfully Setup keys")
+        st.success("Succesfully Setup keys")
         st.success("Please go to Chat section")
 
 def app():
-    # Function for web scraping tool
+    # Function for web scraping tool (You can keep this section as is)
     def web_scraping_tool(query: str) -> str:
         # Vectorstore
         vectorstore = Chroma(embedding_function=OpenAIEmbeddings(), persist_directory="./chroma_db_oai")
@@ -64,7 +64,7 @@ def app():
         ),
     ]
 
-    # Defining chat prompts
+    # Defining chat prompts (excluding voice-related parts)
     # (Please note that prompt variables are repeated and will need to be maintained in sync)
     prompt = """Hey AI your name is Sunny,Your Financial Buddy, please act as if you're my close friend, not a professional, and let's talk about my financial goals and plans. Your tone should be warm, friendly, and reassuring, just like a trusted friend. Feel free to guide me through financial decisions and offer advice as you would to a close buddy. You can also access this tool to get more better responses.
 
@@ -118,7 +118,6 @@ def app():
 
     # Custom output parser
     class CustomOutputParser(AgentOutputParser):
-
         def parse(self, llm_output: str) -> Union[AgentAction, AgentFinish]:
             if "Final Answer:" in llm_output:
                 return AgentFinish(
@@ -166,10 +165,29 @@ def app():
     agent_executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True)
 
     # Streamlit chat interface
+    spinner_html = """
+    <div class="spinner"></div>
+
+    <style>
+    .spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #3498db;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+    }
+    </style>
+    """
     st.markdown("<h1 align=center>💲FinSight - Your Finance Buddy📈</h1>", unsafe_allow_html=True)
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
     if prompt := st.chat_input("Ask a Question"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -177,8 +195,10 @@ def app():
 
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
+            message_placeholder.markdown(spinner_html,unsafe_allow_html=True)
             ai_response = agent_executor.run(prompt)
             message_placeholder.write(ai_response)
+
         st.session_state.messages.append({"role": "assistant", "content": ai_response})
 
 def home_page():
@@ -203,11 +223,12 @@ def home_page():
 def main():
     st.sidebar.title("FinSight")
     selected_page = st.sidebar.radio("Go to:", ["Home", "Settings", "Chat"])
-    if selected_page == "Home":
+    if selected_page=="Home":
         home_page()
     elif selected_page == "Settings":
         setup()
     elif selected_page == "Chat":
         app()
 
-main()
+if __name__ == "__main__":
+    main()
