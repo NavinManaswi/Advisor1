@@ -1,2 +1,2 @@
-# FinAdvisor1
-LLM Powered Financial Advisor
+# Advisor1
+LLM Powered Advisor
